@@ -14,14 +14,16 @@ const express = require("express"),
 	  passportLocalMongoose = require("passport-local-mongoose");
 
 //Models
-const User = require("./models/User");
-const Token = require("./models/Token");
+const User = require("./models/User"),
+	  Token = require("./models/Token");
 
 //Routes
-const indexRoutes = require("./routes/index");
+const indexRoutes = require("./routes/index"),
+	  taskRoutes = require("./routes/task");
 
 //DB Config
 mongoose.connect(process.env.DATABASEURL || "mongodb://localhost/taskplanner", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.set("useFindAndModify", false);
 
 //App Config
 app.use(cors({credentials: true, origin: true}));	//Enables cookies in cross-origin request
@@ -55,6 +57,7 @@ passport.use(new LocalStrategy(User.authenticate()));	//Uses passportLocalMongoo
  
 //Run Routes
 app.use("/", indexRoutes);
+app.use("/tasks", taskRoutes);
 
 //Start Server
 app.listen(process.env.PORT || 3001, () => {
