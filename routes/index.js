@@ -30,47 +30,46 @@ router.post("/login", (req, res) => {
 
 		await req.logIn(user, {session: false})
 		const {_id} = req.user;
-		const accessToken = jwt.sign({sub: _id}, process.env.ACCESS_KEY, {expiresIn: "15min"});	//Creates JWT
+		//Creates JWT
 		const refreshToken = jwt.sign({sub: _id}, process.env.REFRESH_KEY, {expiresIn: "1 week"});
+		const accessToken = jwt.sign({sub: _id}, process.env.ACCESS_KEY, {expiresIn: "15min"});
 		await Token.create({token: refreshToken, userId: _id});
 
-		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true});		//Sends JWT in cookie
+		//Sends JWT in cookie
 		res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: true});
+		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true});
 		res.json(_id);
 	})(req, res);
 });
 
 router.get("/logout", (req, res) => {
-	res.clearCookie("access_token");	//Clears JWT cookies
-	res.clearCookie("refresh_token");
+	//Clears JWT cookies with same options
+	res.clearCookie("access_token", {httpOnly: true, sameSite: true, path: "/"});
+	res.clearCookie("refresh_token", {httpOnly: true, sameSite: true, path: "/"});
 	res.json(true);
 });
 
-router.post("/access", (req, res) => {
-	passport.authenticate("jwt", (err, user) => {
-		if(err) {
-			return res.json(err);
-		};
-		if(!user) {
-			return res.json(false);
-		}
-		res.json(user);
-	})(req, res);
+router.get("/access", (req, res) => {
+	res.json(req.user);
 });
 
 router.post("/refresh", (req, res) => {
-	if(!req.cookies["refresh_token"]) {		//Checks if refresh token exists
+	//Checks if refresh token exists
+	if(!req.cookies["refresh_token"]) {
 		return res.json(false);
 	};
 	Token.findOne({token: req.cookies["refresh_token"]}, (err, refreshToken) => {
-		if(!refreshToken) {		//Checks if refresh token matches DB refresh token
+		//Checks if refresh token matches DB refresh token
+		if(!refreshToken) {
 			return res.json(false);
 		};
-		jwt.verify(refreshToken.token, process.env.REFRESH_KEY, (err, token) => {	//Checks if refresh token is valid
+		//Checks if refresh token is valid
+		jwt.verify(refreshToken.token, process.env.REFRESH_KEY, (err, token) => {
 			if(err) {
 				return res.json(err);
 			};
-			const accessToken = jwt.sign({sub: token.sub}, process.env.ACCESS_KEY, {expiresIn: "15min"});	//Re-creates access token
+			//Re-creates access token
+			const accessToken = jwt.sign({sub: token.sub}, process.env.ACCESS_KEY, {expiresIn: "15min"});
 			res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true});
 			res.json(token.sub);
 		});

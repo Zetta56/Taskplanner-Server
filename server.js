@@ -26,7 +26,8 @@ mongoose.connect(process.env.DATABASEURL || "mongodb://localhost/taskplanner", {
 mongoose.set("useFindAndModify", false);
 
 //App Config
-app.use(cors({credentials: true, origin: true}));	//Enables cookies in cross-origin request
+//Enables cookies in cross-origin request
+app.use(cors({credentials: true, origin: true}));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -34,7 +35,8 @@ app.use(bodyParser.json());
 //Authentication Config
 app.use(passport.initialize());
 passport.use(new JwtStrategy.Strategy({
-	jwtFromRequest: (req) => {		//Extracts JWT from cookies
+	//Extracts JWT from cookies
+	jwtFromRequest: (req) => {
 		let token = null;
 		if(req && req.cookies) {
 			token = req.cookies["access_token"];
@@ -43,7 +45,8 @@ passport.use(new JwtStrategy.Strategy({
 	},
 	secretOrKey: process.env.ACCESS_KEY
 }, (payload, done) => {
-    User.findOne({_id: payload.sub}, (err, user) => {		//Finds and returns user on successful JWT authentication
+	//Finds and returns user on successful JWT authentication
+    User.findOne({_id: payload.sub}, (err, user) => {
         if(err) {
             return done(err, false);
         };
@@ -53,7 +56,15 @@ passport.use(new JwtStrategy.Strategy({
         return done(null, user);
     });
 }));
-passport.use(new LocalStrategy(User.authenticate()));	//Uses passportLocalMongoose's authenticate method
+//Uses passportLocalMongoose's authenticate method
+passport.use(new LocalStrategy(User.authenticate()));
+app.use((req, res, next) => {
+	//Creates req.user on each request
+	passport.authenticate("jwt", (err, user) => {
+		req.user = user;
+		next();
+	})(req, res);
+});
  
 //Run Routes
 app.use("/", indexRoutes);
