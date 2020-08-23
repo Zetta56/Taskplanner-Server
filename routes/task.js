@@ -21,10 +21,6 @@ router.get("/", async(req, res) => {
 router.post("/new", async (req, res) => {
 	try {
 		const newTask = await Task.create(req.body);
-		if(req.user) {
-			newTask.creator = req.user
-			newTask.save();
-		};
 		res.json(newTask);
 	} catch(err) {
 		res.json(err);
@@ -72,6 +68,16 @@ router.delete("/:id", async (req, res) => {
 	} catch(err) {
 		res.json(err);
 	};
-})
+});
+
+//Accepts post request to ensure that it works with sendBeacon
+router.post("/anonymous", async (req, res) => {
+	try {
+		await Task.deleteMany({creator: null});
+		res.json(true);
+	} catch(err) {
+		res.json(err);
+	};
+});
 
 module.exports = router;

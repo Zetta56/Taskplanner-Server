@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const taskSchema = new mongoose.Schema({
 	title: String,
 	description: String,
-	date: {type: Date, default: Date.now()},
-	editDisabled: {type: Boolean, default: false},
+	date: Date,
+	editDisabled: Boolean,
 	creator: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User"
