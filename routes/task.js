@@ -2,6 +2,7 @@ const express = require("express"),
 	  router = express.Router(),
 	  mongoose = require("mongoose"),
 	  Task = require("../models/Task");
+	  Step = require("../models/Step");
 
 router.get("/", async(req, res) => {
 	try {
@@ -18,21 +19,25 @@ router.get("/", async(req, res) => {
 	};
 });
 
-router.post("/new", async (req, res) => {
+router.post("/", async (req, res) => {
 	try {
 		const newTask = await Task.create(req.body);
+		if(req.user) {
+			newTask.creator = req.user._id;
+			newTask.save();
+		}
 		res.json(newTask);
 	} catch(err) {
 		res.json(err);
 	};
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:taskId", async (req, res) => {
 	try {
-		if(!mongoose.Types.ObjectId.isValid(req.params.id)) {
+		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
 			return res.json({message: "Task does not exist."});
 		};
-		const foundTask = await Task.findById(req.params.id);
+		const foundTask = await Task.findById(req.params.taskId);
 		if(!foundTask) {
 			return res.json({message: "Task does not exist."});
 		};
@@ -42,13 +47,14 @@ router.get("/:id", async (req, res) => {
 	};
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:taskId", async (req, res) => {
 	try {
-		if(!mongoose.Types.ObjectId.isValid(req.params.id)) {
+		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
 			return res.json({message: "Task does not exist."});
 		};
+		const foundTask = await Task.findById(req.params.taskId);
 		//New option makes mongoose return updated result
-		const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {new: true});
+		const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, req.body, {new: true});
 		if(!updatedTask) {
 			return res.json({message: "Task does not exist."});
 		};
@@ -56,15 +62,19 @@ router.put("/:id", async (req, res) => {
 	} catch(err) {
 		res.json(err);
 	};
-})
+});
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:taskId", async (req, res) => {
 	try {
-		if(!mongoose.Types.ObjectId.isValid(req.params.id)) {
+		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
 			return res.json({message: "Task does not exist."});
 		};
-		await Task.findByIdAndDelete(req.params.id);
-		res.json(req.params.id);
+		await Step.deleteMany({task: req.params.taskId});
+		await Task.findByIdAndDelete(req.params.taskId);
+		if(!deletedTask) {
+			return res.json({message: "Task does not exist."});
+		}
+		res.json(req.params.taskId);
 	} catch(err) {
 		res.json(err);
 	};
@@ -73,6 +83,10 @@ router.delete("/:id", async (req, res) => {
 //Accepts post request to ensure that it works with sendBeacon
 router.post("/anonymous", async (req, res) => {
 	try {
+		const anonymousTasks = await Task.find({creator: null});
+		anonymousTasks.forEach(async (task) => {
+			await Step.deleteMany({task: task._id});
+		});
 		await Task.deleteMany({creator: null});
 		res.json(true);
 	} catch(err) {

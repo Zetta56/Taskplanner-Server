@@ -19,7 +19,8 @@ const User = require("./models/User"),
 
 //Routes
 const indexRoutes = require("./routes/index"),
-	  taskRoutes = require("./routes/task");
+	  taskRoutes = require("./routes/task"),
+	  stepRoutes = require("./routes/step");
 
 //DB Config
 mongoose.connect(process.env.DATABASEURL || "mongodb://localhost/taskplanner", {useNewUrlParser: true, useUnifiedTopology: true});
@@ -69,6 +70,7 @@ app.use((req, res, next) => {
 //Run Routes
 app.use("/", indexRoutes);
 app.use("/tasks", taskRoutes);
+app.use("/tasks/:taskId/steps", stepRoutes);
 
 //Start Server
 app.listen(process.env.PORT || 3001, () => {

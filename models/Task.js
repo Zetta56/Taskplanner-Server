@@ -4,7 +4,7 @@ const taskSchema = new mongoose.Schema({
 	title: String,
 	description: String,
 	date: Date,
-	editDisabled: Boolean,
+	editDisabled: {type: Boolean, default: false},
 	creator: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User"
