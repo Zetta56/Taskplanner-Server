@@ -8,7 +8,13 @@ const taskSchema = new mongoose.Schema({
 	creator: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User"
-	}
+	},
+	steps: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Step"
+		}
+	]
 });
 
 module.exports = mongoose.model("Task", taskSchema);

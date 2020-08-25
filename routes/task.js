@@ -7,6 +7,7 @@ const express = require("express"),
 router.get("/", async(req, res) => {
 	try {
 		if(!req.user) {
+			//Finds only tasks created while not logged in
 			const tasks = await Task.find({creator: {$exists: false}});
 			res.json(tasks);
 		} else {
@@ -52,7 +53,7 @@ router.put("/:taskId", async (req, res) => {
 		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
 			return res.json({message: "Task does not exist."});
 		};
-		const foundTask = await Task.findById(req.params.taskId);
+		console.log(req.body)
 		//New option makes mongoose return updated result
 		const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, req.body, {new: true});
 		if(!updatedTask) {
@@ -69,6 +70,7 @@ router.delete("/:taskId", async (req, res) => {
 		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
 			return res.json({message: "Task does not exist."});
 		};
+		//Removes associated steps
 		await Step.deleteMany({task: req.params.taskId});
 		await Task.findByIdAndDelete(req.params.taskId);
 		if(!deletedTask) {
@@ -80,11 +82,12 @@ router.delete("/:taskId", async (req, res) => {
 	};
 });
 
-//Accepts post request to ensure that it works with sendBeacon
+//Post route to ensure that it works with sendBeacon
 router.post("/anonymous", async (req, res) => {
 	try {
 		const anonymousTasks = await Task.find({creator: null});
 		anonymousTasks.forEach(async (task) => {
+			//Removes associated steps
 			await Step.deleteMany({task: task._id});
 		});
 		await Task.deleteMany({creator: null});
