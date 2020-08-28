@@ -1,97 +1,67 @@
 const express = require("express"),
 	  router = express.Router(),
 	  mongoose = require("mongoose"),
-	  Task = require("../models/Task");
+	  middleware = require("../middleware"),
+	  Task = require("../models/Task"),
 	  Step = require("../models/Step");
 
-router.get("/", async(req, res) => {
+router.get("/", middleware.isLoggedIn, async(req, res) => {
 	try {
-		if(!req.user) {
-			//Finds only tasks created while not logged in
-			const tasks = await Task.find({creator: {$exists: false}});
-			res.json(tasks);
-		} else {
-			const tasks = await Task.find({creator: req.user});
-			res.json(tasks);
-		};
-		
+		const tasks = await Task.find({creator: req.user});
+		res.json(tasks);
 	} catch(err) {
 		res.json(err);
 	};
 });
 
-router.post("/", async (req, res) => {
+router.post("/", middleware.isLoggedIn, async (req, res) => {
 	try {
-		const newTask = await Task.create(req.body);
-		if(req.user) {
-			newTask.creator = req.user._id;
-			newTask.save();
-		}
+		const newTask = await Task.create({...req.body, creator: req.user._id});
 		res.json(newTask);
 	} catch(err) {
 		res.json(err);
 	};
 });
 
-router.get("/:taskId", async (req, res) => {
+router.get("/:taskId", middleware.taskAuthorized, async (req, res) => {
 	try {
-		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
-			return res.json({message: "Task does not exist."});
-		};
 		const foundTask = await Task.findById(req.params.taskId);
-		if(!foundTask) {
-			return res.json({message: "Task does not exist."});
-		};
 		res.json(foundTask);
 	} catch(err) {
 		res.json(err);
 	};
 });
 
-router.put("/:taskId", async (req, res) => {
+router.put("/:taskId", middleware.taskAuthorized, async (req, res) => {
 	try {
-		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
-			return res.json({message: "Task does not exist."});
-		};
-		console.log(req.body)
 		//New option makes mongoose return updated result
 		const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, req.body, {new: true});
-		if(!updatedTask) {
-			return res.json({message: "Task does not exist."});
-		};
 		res.json(updatedTask);
 	} catch(err) {
 		res.json(err);
 	};
 });
 
-router.delete("/:taskId", async (req, res) => {
+router.delete("/inactive", middleware.isLoggedIn, async (req, res) => {
 	try {
-		if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
-			return res.json({message: "Task does not exist."});
-		};
-		//Removes associated steps
-		await Step.deleteMany({task: req.params.taskId});
-		await Task.findByIdAndDelete(req.params.taskId);
-		if(!deletedTask) {
-			return res.json({message: "Task does not exist."});
-		}
-		res.json(req.params.taskId);
+		const foundTasks = await Task.find({done: true, creator: req.user._id});
+		foundTasks.forEach(async (task) => {
+			//Removes associated steps
+			await Step.deleteMany({task: task._id});
+			await Task.findByIdAndDelete(task._id);
+		});
+		res.json(foundTasks.map(task => task._id));
 	} catch(err) {
 		res.json(err);
 	};
 });
 
-//Post route to ensure that it works with sendBeacon
-router.post("/anonymous", async (req, res) => {
+router.delete("/:taskId", middleware.taskAuthorized, async (req, res) => {
 	try {
-		const anonymousTasks = await Task.find({creator: null});
-		anonymousTasks.forEach(async (task) => {
-			//Removes associated steps
-			await Step.deleteMany({task: task._id});
-		});
-		await Task.deleteMany({creator: null});
-		res.json(true);
+		//Removes associated steps
+		await Step.deleteMany({task: req.params.taskId});
+		const deletedTask = await Task.findByIdAndDelete(req.params.taskId);
+		res.json(req.params.taskId);
 	} catch(err) {
 		res.json(err);
 	};

@@ -5,6 +5,7 @@ const taskSchema = new mongoose.Schema({
 	description: String,
 	date: Date,
 	editDisabled: {type: Boolean, default: false},
+	done: {type: Boolean, default: false},
 	creator: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User"

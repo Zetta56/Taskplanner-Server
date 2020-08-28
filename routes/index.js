@@ -24,21 +24,21 @@ router.post("/login", (req, res) => {
 		if(err) {
 			return res.json(err);
 		};
+
 		if(!user) {
 			return res.json({message: "Username or password is incorrect"});
 		};
 
-		await req.logIn(user, {session: false})
-		const {_id} = req.user;
+		await req.logIn(user, {session: false});
 		//Creates JWT
-		const refreshToken = jwt.sign({sub: _id}, process.env.REFRESH_KEY, {expiresIn: "1 week"});
-		const accessToken = jwt.sign({sub: _id}, process.env.ACCESS_KEY, {expiresIn: "15min"});
-		await Token.create({token: refreshToken, userId: _id});
+		const refreshToken = jwt.sign({sub: req.user._id}, process.env.REFRESH_KEY, {expiresIn: "1 week"});
+		const accessToken = jwt.sign({sub: req.user._id}, process.env.ACCESS_KEY, {expiresIn: "15min"});
+		await Token.create({token: refreshToken, userId: req.user._id});
 
 		//Sends JWT in cookie
 		res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: true});
 		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true});
-		res.json(_id);
+		res.json(req.user._id);
 	})(req, res);
 });
 
