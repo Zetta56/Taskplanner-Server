@@ -44,7 +44,6 @@ router.post("/reorder", middleware.taskAuthorized, async (req, res) => {
 
 router.put("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, async (req, res) => {
 	try {
-		console.log(req.params.stepId)
 		const updatedStep = await Step.findByIdAndUpdate(req.params.stepId, req.body, {new: true});
 		res.json(updatedStep);
 	} catch(err) {
@@ -58,8 +57,18 @@ router.delete("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, 
 		//Removes step from task's references
 		await foundTask.steps.pull(req.params.stepId);
 		await foundTask.save();
-		const deletedStep = await Step.findByIdAndDelete(req.params.stepId);
+		await Step.findByIdAndDelete(req.params.stepId);
 		res.json(req.params.stepId);
+	} catch(err) {
+		res.json(err);
+	};
+});
+
+router.delete("/", middleware.taskAuthorized, async (req, res) => {
+	try {
+		await Task.findByIdAndUpdate(req.params.taskId, {steps: []});
+		await Step.deleteMany({task: req.params.taskId});
+		res.json(true);
 	} catch(err) {
 		res.json(err);
 	};

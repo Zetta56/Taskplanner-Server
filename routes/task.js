@@ -42,7 +42,7 @@ router.put("/:taskId", middleware.taskAuthorized, async (req, res) => {
 	};
 });
 
-router.delete("/inactive", middleware.isLoggedIn, async (req, res) => {
+router.delete("/completed", middleware.isLoggedIn, async (req, res) => {
 	try {
 		const foundTasks = await Task.find({done: true, creator: req.user._id});
 		foundTasks.forEach(async (task) => {
