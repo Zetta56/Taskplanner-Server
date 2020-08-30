@@ -10,7 +10,7 @@ router.get("/", middleware.isLoggedIn, async(req, res) => {
 		const tasks = await Task.find({creator: req.user});
 		res.json(tasks);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -19,7 +19,7 @@ router.post("/", middleware.isLoggedIn, async (req, res) => {
 		const newTask = await Task.create({...req.body, creator: req.user._id});
 		res.json(newTask);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -28,7 +28,7 @@ router.get("/:taskId", middleware.taskAuthorized, async (req, res) => {
 		const foundTask = await Task.findById(req.params.taskId);
 		res.json(foundTask);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -38,7 +38,7 @@ router.put("/:taskId", middleware.taskAuthorized, async (req, res) => {
 		const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, req.body, {new: true});
 		res.json(updatedTask);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -52,7 +52,7 @@ router.delete("/completed", middleware.isLoggedIn, async (req, res) => {
 		});
 		res.json(foundTasks.map(task => task._id));
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -63,7 +63,7 @@ router.delete("/:taskId", middleware.taskAuthorized, async (req, res) => {
 		const deletedTask = await Task.findByIdAndDelete(req.params.taskId);
 		res.json(req.params.taskId);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 

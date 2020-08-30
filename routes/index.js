@@ -12,7 +12,7 @@ router.post("/register", (req, res) => {
 	};
 	User.register(user, req.body.password, (err, newUser) => {
 		if(err) {
-			res.json(err);
+			res.status(409).json(err);
 		};
 
 		res.json(newUser);
@@ -22,11 +22,11 @@ router.post("/register", (req, res) => {
 router.post("/login", (req, res) => {
 	passport.authenticate("local", async(err, user) => {
 		if(err) {
-			return res.json(err);
+			return res.status(500).json(err);
 		};
 
 		if(!user) {
-			return res.json({message: "Username or password is incorrect"});
+			return res.status(401).json({message: "Username or password is incorrect"});
 		};
 
 		await req.logIn(user, {session: false});

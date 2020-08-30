@@ -11,7 +11,7 @@ router.get("/", middleware.taskAuthorized, async (req, res) => {
 		const foundSteps = await Step.find({task: req.params.taskId}).sort({"order": "ascending"}).exec();
 		res.json(foundSteps);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -24,7 +24,7 @@ router.post("/", middleware.taskAuthorized, async (req, res) => {
 		await foundTask.save();
 		res.json(newStep);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -38,7 +38,7 @@ router.post("/reorder", middleware.taskAuthorized, async (req, res) => {
 		});
 		res.json(foundSteps);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -47,7 +47,7 @@ router.put("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, asy
 		const updatedStep = await Step.findByIdAndUpdate(req.params.stepId, req.body, {new: true});
 		res.json(updatedStep);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -60,7 +60,7 @@ router.delete("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, 
 		await Step.findByIdAndDelete(req.params.stepId);
 		res.json(req.params.stepId);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
@@ -70,7 +70,7 @@ router.delete("/", middleware.taskAuthorized, async (req, res) => {
 		await Step.deleteMany({task: req.params.taskId});
 		res.json(true);
 	} catch(err) {
-		res.json(err);
+		res.status(500).json(err);
 	};
 });
 
