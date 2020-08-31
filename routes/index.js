@@ -36,8 +36,8 @@ router.post("/login", (req, res) => {
 		await Token.create({token: refreshToken, userId: req.user._id});
 
 		//Sends JWT in cookie
-		res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: true});
-		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true});
+		res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: true, secure: true});
+		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true, secure: true});
 		res.json(req.user._id);
 	})(req, res);
 });
