@@ -2,10 +2,11 @@ const express = require("express"),
 	  router = express.Router(),
 	  passport = require("passport"),
 	  jwt = require("jsonwebtoken"),
+	  middleware = require("../middleware"),
 	  User = require("../models/User"),
 	  Token = require("../models/Token");
 
-router.post("/register", (req, res) => {
+router.post("/register", middleware.isNotLoggedIn, (req, res) => {
 	let user = {
 		email: req.body.email,
 		username: req.body.username
@@ -19,7 +20,7 @@ router.post("/register", (req, res) => {
 	});
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", middleware.isNotLoggedIn, (req, res) => {
 	passport.authenticate("local", async(err, user) => {
 		if(err) {
 			return res.status(500).json(err);
@@ -36,8 +37,8 @@ router.post("/login", (req, res) => {
 		await Token.create({token: refreshToken, userId: req.user._id});
 
 		//Sends JWT in cookie
-		res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: true, secure: true});
-		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true, secure: true});
+		res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: "none", secure: true});
+		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: "none", secure: true});
 		res.json(req.user._id);
 	})(req, res);
 });
