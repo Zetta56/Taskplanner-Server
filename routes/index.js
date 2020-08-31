@@ -45,8 +45,8 @@ router.post("/login", middleware.isNotLoggedIn, (req, res) => {
 
 router.get("/logout", (req, res) => {
 	//Clears JWT cookies with same options
-	res.clearCookie("access_token", {httpOnly: true, sameSite: true, path: "/"});
-	res.clearCookie("refresh_token", {httpOnly: true, sameSite: true, path: "/"});
+	res.clearCookie("access_token", {httpOnly: true, sameSite: "none", secure: true, path: "/"});
+	res.clearCookie("refresh_token", {httpOnly: true, sameSite: "none", secure: true, path: "/"});
 	res.json(true);
 });
 
