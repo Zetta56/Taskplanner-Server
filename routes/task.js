@@ -7,9 +7,24 @@ const express = require("express"),
 
 router.get("/", middleware.isLoggedIn, async(req, res) => {
 	try {
-		const tasks = await Task.find({creator: req.user});
+		let tasks = null
+		switch(req.query.filter) {
+			case "Alphabetical":
+				tasks = await Task.find({creator: req.user}).sort({"title": "asc"}).exec();
+				break;
+			case "Newest":
+				tasks = await Task.find({creator: req.user}).sort({"date": "asc"}).exec();
+				break;
+			case "Oldest":
+				tasks = await Task.find({creator: req.user}).sort({"date": "desc"}).exec();
+				break;
+			default:
+				tasks = await Task.find({creator: req.user});
+				break;
+		};
 		res.json(tasks);
 	} catch(err) {
+		console.log(err)
 		res.status(500).json(err);
 	};
 });
