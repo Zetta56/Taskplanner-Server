@@ -4,13 +4,13 @@ require("dotenv").config();
 const express = require("express"),
 	  app = express(),
 	  cors = require("cors"),
+	  mongoose = require("mongoose"),
 	  bodyParser = require("body-parser"),
 	  cookieParser = require("cookie-parser"),
 	  jwt = require("jsonwebtoken"),
-	  mongoose = require("mongoose"),
 	  passport = require("passport"),
 	  LocalStrategy = require("passport-local"),
-	  JwtStrategy = require("passport-jwt"),
+	  JwtStrategy = require("passport-jwt").Strategy,
 	  passportLocalMongoose = require("passport-local-mongoose");
 
 //Models
@@ -35,7 +35,7 @@ app.use(bodyParser.json());
 
 //Authentication Config
 app.use(passport.initialize());
-passport.use(new JwtStrategy.Strategy({
+passport.use(new JwtStrategy({
 	//Extracts JWT from cookies
 	jwtFromRequest: (req) => {
 		let token = null;
