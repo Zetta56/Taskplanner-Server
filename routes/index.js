@@ -25,7 +25,7 @@ router.post("/register", middleware.isNotLoggedIn, (req, res) => {
 router.post("/login", middleware.isNotLoggedIn, (req, res) => {
 	let currentUser = null;
 	passport.authenticate("local", async(err, user) => {
-		if(req.body.googleToken) {
+		if(process.env.GOOGLE_CLIENTID && req.body.googleToken) {
 			try {
 				//Verifies that google token is valid
 				const ticket = await new OAuth2Client(process.env.GOOGLE_CLIENTID).verifyIdToken({
