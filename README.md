@@ -27,7 +27,27 @@ This server requires the following:
 3. Start the server with:
 
        node server.js
+       
+Note: If you are running this on a website using HTTP instead of HTTPS (ex. localhost) you may have to remove the secure property on your cookies. This can be done by navigating to the routes/index.js file and changing the lines
+   
+         res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: "none", secure: true});
+         res.cookie("access_token", accessToken, {httpOnly: true, sameSite: "none", secure: true});
+   
+         ...
+   
+         res.clearCookie("access_token", {httpOnly: true, sameSite: "none", secure: true, path: "/"});
+         res.clearCookie("refresh_token", {httpOnly: true, sameSite: "none", secure: true, path: "/"});
 
+   to the following:
+   
+         res.cookie("refresh_token", refreshToken, {httpOnly: true, sameSite: "none"});
+         res.cookie("access_token", accessToken, {httpOnly: true, sameSite: "none"});
+   
+         ...
+   
+         res.clearCookie("access_token", {httpOnly: true, sameSite: "none", path: "/"});
+         res.clearCookie("refresh_token", {httpOnly: true, sameSite: "none", path: "/"});
+   
 OPTIONAL: You can enable Google OAuth2 with the following:
 1. Navigate to https://console.developers.google.com.
 
