@@ -1,6 +1,7 @@
 const express = require("express"),
 	  router = express.Router(),
 	  mongoose = require("mongoose"),
+	  sanitize = require("sanitize-html"),
 	  middleware = require("../middleware"),
 	  Task = require("../models/Task"),
 	  Step = require("../models/Step");
@@ -31,7 +32,12 @@ router.get("/", middleware.isLoggedIn, async(req, res) => {
 
 router.post("/", middleware.isLoggedIn, async (req, res) => {
 	try {
-		const newTask = await Task.create({...req.body, creator: req.user._id});
+		const taskBody = {
+			title: "New Task",
+			description: "Enter a description here...",
+			date: Date.now()
+		};
+		const newTask = await Task.create({...taskBody, creator: req.user._id});
 		res.json(newTask);
 	} catch(err) {
 		res.status(500).json(err);
@@ -49,8 +55,16 @@ router.get("/:taskId", middleware.taskAuthorized, async (req, res) => {
 
 router.put("/:taskId", middleware.taskAuthorized, async (req, res) => {
 	try {
+		const types = ["title", "description", "date", "editDisables", "done"];
+		let sanitizedProperty = null;
+		for(let i = 0; i < types.length; i++) {
+			if(req.body.hasOwnProperty(types[i])) {
+				let type = types[i];
+				sanitizedProperty = {[type]: sanitize(req.body[type])};
+			}
+		};
 		//New option makes mongoose return updated result
-		const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, req.body, {new: true});
+		const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, sanitizedProperty || req.body, {new: true});
 		res.json(updatedTask);
 	} catch(err) {
 		res.status(500).json(err);

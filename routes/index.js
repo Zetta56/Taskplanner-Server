@@ -48,7 +48,7 @@ router.post("/login", middleware.isNotLoggedIn, (req, res) => {
 		};
 
 		//Creates JWT
-		const refreshToken = jwt.sign({sub: currentUser._id}, process.env.REFRESH_KEY, {expiresIn: "1 week"});
+		const refreshToken = jwt.sign({sub: currentUser._id}, process.env.REFRESH_KEY, {expiresIn: "3 days"});
 		const accessToken = jwt.sign({sub: currentUser._id}, process.env.ACCESS_KEY, {expiresIn: "15min"});
 		await Token.create({token: refreshToken, userId: currentUser._id});
 

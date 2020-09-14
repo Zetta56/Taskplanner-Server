@@ -1,6 +1,7 @@
 const express = require("express"),
 	  router = express.Router({mergeParams: true}),
 	  mongoose = require("mongoose"),
+	  sanitize = require("sanitize-html"),
 	  middleware = require("../middleware");
 	  Task = require("../models/Task"),
 	  Step = require("../models/Step");
@@ -17,7 +18,7 @@ router.get("/", middleware.taskAuthorized, async (req, res) => {
 
 router.post("/", middleware.taskAuthorized, async (req, res) => {
 	try {
-		const newStep = await Step.create({...req.body, task: req.params.taskId});
+		const newStep = await Step.create({content: "New Step", task: req.params.taskId});
 		const foundTask = await Task.findById(req.params.taskId);
 		//Adds step to task's references
 		await foundTask.steps.push(newStep._id);
@@ -44,7 +45,15 @@ router.post("/reorder", middleware.taskAuthorized, async (req, res) => {
 
 router.put("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, async (req, res) => {
 	try {
-		const updatedStep = await Step.findByIdAndUpdate(req.params.stepId, req.body, {new: true});
+		const types = ["content", "order", "done"];
+		let sanitizedProperty = null;
+		for(let i = 0; i < types.length; i++) {
+			if(req.body.hasOwnProperty(types[i])) {
+				let type = types[i];
+				sanitizedProperty = {[type]: sanitize(req.body[type])};
+			}
+		};
+		const updatedStep = await Step.findByIdAndUpdate(req.params.stepId, sanitizedProperty || req.body, {new: true});
 		res.json(updatedStep);
 	} catch(err) {
 		res.status(500).json(err);
