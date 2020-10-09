@@ -10,9 +10,9 @@ This server requires the following:
 ## Usage
 1. Create a `.env` file at the root directory and add the following lines:
 
-       process.env.DATABASEURL="YOUR MONGODB"
-       process.env.ACCESS_TOKEN="ACCESS SECRET"
-       process.env.REFRESH_TOKEN="REFRESH SECRET"
+       DATABASEURL="YOUR MONGODB"
+       ACCESS_TOKEN="ACCESS SECRET"
+       REFRESH_TOKEN="REFRESH SECRET"
        
    Make sure to replace "YOUR MONGODB" with the URL to your Mongo database, as well as "ACCESS SECRET" and "REFRESH SECRET" to any strings you like.
    
@@ -61,6 +61,6 @@ OPTIONAL: You can enable Google OAuth2 with the following:
 
 6. You should see your client id. If you do, add the following to your project's environment variables and replace YOUR_CLIENT_ID with your client id:
 
-       process.env.GOOGLE_CLIENTID=YOUR_CLIENT_ID
+       GOOGLE_CLIENTID=YOUR_CLIENT_ID
       
    Note: You should also enable Google OAuth2 in your [Taskplanner-client](https://github.com/Zetta56/Taskplanner-client).
