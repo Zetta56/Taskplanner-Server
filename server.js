@@ -25,6 +25,7 @@ const indexRoutes = require("./routes/index"),
 //DB Config
 mongoose.connect(process.env.DATABASEURL || "mongodb://localhost/taskplanner", {useNewUrlParser: true, useUnifiedTopology: true});
 mongoose.set("useFindAndModify", false);
+mongoose.set('useCreateIndex', true);
 
 //App Config
 //Enables cookies in cross-origin request
