@@ -1,12 +1,13 @@
 const express = require("express"),
 	  router = express.Router(),
-	  mongoose = require("mongoose"),
 	  sanitize = require("sanitize-html"),
 	  middleware = require("../middleware"),
 	  Task = require("../models/Task"),
 	  Step = require("../models/Step");
 
-router.get("/", middleware.isLoggedIn, async(req, res) => {
+router.use(middleware.isLoggedIn)
+
+router.get("/", async(req, res) => {
 	try {
 		let tasks = null
 		switch(req.query.filter) {
@@ -25,12 +26,11 @@ router.get("/", middleware.isLoggedIn, async(req, res) => {
 		};
 		res.json(tasks);
 	} catch(err) {
-		console.log(err)
 		res.status(500).json(err);
 	};
 });
 
-router.post("/", middleware.isLoggedIn, async (req, res) => {
+router.post("/", async (req, res) => {
 	try {
 		const taskBody = {
 			title: "New Task",
@@ -71,7 +71,7 @@ router.put("/:taskId", middleware.taskAuthorized, async (req, res) => {
 	};
 });
 
-router.delete("/completed", middleware.isLoggedIn, async (req, res) => {
+router.delete("/completed", async (req, res) => {
 	try {
 		const foundTasks = await Task.find({done: true, creator: req.user._id});
 		foundTasks.forEach(async (task) => {

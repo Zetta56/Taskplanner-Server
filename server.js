@@ -1,24 +1,20 @@
-require("dotenv").config();
-
 //Packages
 const express = require("express"),
 	  app = express(),
+		path = require("path"),
 	  cors = require("cors"),
 	  mongoose = require("mongoose"),
 	  bodyParser = require("body-parser"),
 	  cookieParser = require("cookie-parser"),
-	  jwt = require("jsonwebtoken"),
 	  passport = require("passport"),
 	  LocalStrategy = require("passport-local"),
-	  JwtStrategy = require("passport-jwt").Strategy,
-	  passportLocalMongoose = require("passport-local-mongoose");
+	  JwtStrategy = require("passport-jwt").Strategy;
 
-//Models
+require("dotenv").config({path: path.resolve(__dirname, '.env')});
+
+//Server Files
 const User = require("./models/User"),
-	  Token = require("./models/Token");
-
-//Routes
-const indexRoutes = require("./routes/index"),
+	  indexRoutes = require("./routes/index"),
 	  taskRoutes = require("./routes/task"),
 	  stepRoutes = require("./routes/step");
 

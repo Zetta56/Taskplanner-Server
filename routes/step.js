@@ -1,12 +1,14 @@
 const express = require("express"),
 	  router = express.Router({mergeParams: true}),
-	  mongoose = require("mongoose"),
 	  sanitize = require("sanitize-html"),
 	  middleware = require("../middleware");
 	  Task = require("../models/Task"),
 	  Step = require("../models/Step");
 
-router.get("/", middleware.taskAuthorized, async (req, res) => {
+router.use(middleware.isLoggedIn);
+router.use(middleware.taskAuthorized);
+
+router.get("/", async (req, res) => {
 	try {
 		//Finds and sorts steps according to order
 		const foundSteps = await Step.find({task: req.params.taskId}).sort({"order": "ascending"}).exec();
@@ -16,7 +18,7 @@ router.get("/", middleware.taskAuthorized, async (req, res) => {
 	};
 });
 
-router.post("/", middleware.taskAuthorized, async (req, res) => {
+router.post("/", async (req, res) => {
 	try {
 		const newStep = await Step.create({content: "New Step", task: req.params.taskId});
 		const foundTask = await Task.findById(req.params.taskId);
@@ -29,7 +31,7 @@ router.post("/", middleware.taskAuthorized, async (req, res) => {
 	};
 });
 
-router.post("/reorder", middleware.taskAuthorized, async (req, res) => {
+router.post("/reorder", async (req, res) => {
 	try {
 		const foundSteps = await Step.find({task: req.params.taskId});
 		foundSteps.forEach(step => {
@@ -43,7 +45,7 @@ router.post("/reorder", middleware.taskAuthorized, async (req, res) => {
 	};
 });
 
-router.put("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, async (req, res) => {
+router.put("/:stepId", middleware.stepAuthorized, async (req, res) => {
 	try {
 		const types = ["content", "order", "done"];
 		let sanitizedProperty = null;
@@ -60,7 +62,7 @@ router.put("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, asy
 	};
 });
 
-router.delete("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, async (req, res) => {
+router.delete("/:stepId", middleware.stepAuthorized, async (req, res) => {
 	try {
 		const foundTask = await Task.findById(req.params.taskId);
 		//Removes step from task's references
@@ -73,7 +75,7 @@ router.delete("/:stepId", middleware.taskAuthorized, middleware.stepAuthorized, 
 	};
 });
 
-router.delete("/", middleware.taskAuthorized, async (req, res) => {
+router.delete("/", async (req, res) => {
 	try {
 		await Task.findByIdAndUpdate(req.params.taskId, {steps: []});
 		await Step.deleteMany({task: req.params.taskId});

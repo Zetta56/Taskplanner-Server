@@ -1,13 +1,22 @@
 const passport = require("passport"),
 	  mongoose = require("mongoose"),
+		{ regenerateToken } = require("../utils"),
 	  Task = require("../models/Task"),
 	  Step = require("../models/Step");
 
 const middleware = {};
 
-middleware.isLoggedIn = (req, res, next) => {
+middleware.isLoggedIn = async (req, res, next) => {
 	if(!req.user) {
-		return res.status(401).json({message: "You must be logged in to do that.", redirect: "/login"});
+		const accessToken = await regenerateToken(req);
+		if(accessToken) {
+			res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true});
+			// Re-authenticate user with new access token
+			req.cookies["access_token"] = accessToken;
+			await passport.authenticate("jwt", (err, user) => req.user = user)(req, res);
+		} else {
+			return res.status(401).json({message: "You must be logged in to do that.", redirect: "/login"});
+		}
 	};
 	next();
 };
@@ -20,9 +29,6 @@ middleware.isNotLoggedIn = (req, res, next) => {
 };
 
 middleware.taskAuthorized = async (req, res, next) => {
-	if(!req.user) {
-		return res.status(401).json({message: "You must be logged in to do that.", redirect: "/login"});
-	};
 	if(!mongoose.Types.ObjectId.isValid(req.params.taskId)) {
 		return res.status(404).json({message: "Task does not exist."});
 	};

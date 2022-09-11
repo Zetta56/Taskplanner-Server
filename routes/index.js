@@ -3,6 +3,7 @@ const express = require("express"),
 	  passport = require("passport"),
 	  jwt = require("jsonwebtoken"),
 	  OAuth2Client = require("google-auth-library").OAuth2Client,
+		{ regenerateToken } = require("../utils"),
 	  middleware = require("../middleware"),
 	  User = require("../models/User"),
 	  Token = require("../models/Token");
@@ -66,31 +67,18 @@ router.get("/logout", (req, res) => {
 	res.json(true);
 });
 
-router.get("/access", (req, res) => {
+router.get("/user", (req, res) => {
 	res.json(req.user);
 });
 
-router.post("/refresh", (req, res) => {
-	//Checks if refresh token exists
-	if(!req.cookies["refresh_token"]) {
-		return res.json(false);
-	};
-	Token.findOne({token: req.cookies["refresh_token"]}, (err, refreshToken) => {
-		//Checks if refresh token matches DB refresh token
-		if(!refreshToken) {
-			return res.json(false);
-		};
-		//Checks if refresh token is valid
-		jwt.verify(refreshToken.token, process.env.REFRESH_KEY, (err, token) => {
-			if(err) {
-				return res.status(500).json(err);
-			};
-			//Re-creates access token
-			const accessToken = jwt.sign({sub: token.sub}, process.env.ACCESS_KEY, {expiresIn: "15min"});
-			res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true});
-			res.json(token.sub);
-		});
-	});
+router.post("/refresh", async (req, res) => {
+	const accessToken = await regenerateToken(req);
+	if(accessToken) {
+		res.cookie("access_token", accessToken, {httpOnly: true, sameSite: true, secure: true});
+		res.json(true);
+	} else {
+		res.json(false);
+	}
 });
 
 module.exports = router;
